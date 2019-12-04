@@ -1,0 +1,5 @@
+setup.py
+src/ptst.egg-info/PKG-INFO
+src/ptst.egg-info/SOURCES.txt
+src/ptst.egg-info/dependency_links.txt
+src/ptst.egg-info/top_level.txt
