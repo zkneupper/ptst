@@ -11,6 +11,7 @@ Virtual Environment:
     conda install -c conda-forge opencv 
     conda install matplotlib
     conda install jupyter
+    conda install black
 
     cd /path/to/pytorch-style-transfer/
     pip install -e ./ptst/
