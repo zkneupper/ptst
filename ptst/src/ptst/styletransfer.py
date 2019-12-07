@@ -3,6 +3,7 @@ from __future__ import print_function
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 # import torch.optim as optim
 
 # import torchvision.transforms as transforms
@@ -17,8 +18,7 @@ import torch.nn.functional as F
 
 
 class ContentLoss(nn.Module):
-
-    def __init__(self, target,):
+    def __init__(self, target):
         super(ContentLoss, self).__init__()
         # we 'detach' the target content from the tree used
         # to dynamically compute the gradient: this is a stated value,
@@ -46,7 +46,6 @@ def gram_matrix(input):
 
 
 class StyleLoss(nn.Module):
-
     def __init__(self, target_feature):
         super(StyleLoss, self).__init__()
         self.target = gram_matrix(target_feature).detach()
@@ -55,7 +54,6 @@ class StyleLoss(nn.Module):
         G = gram_matrix(input)
         self.loss = F.mse_loss(G, self.target)
         return input
-
 
 
 # create a module to normalize input image so we can easily put it in a
@@ -72,5 +70,3 @@ class Normalization(nn.Module):
     def forward(self, img):
         # normalize img
         return (img - self.mean) / self.std
-
-
