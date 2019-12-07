@@ -4,6 +4,14 @@
 # from .tempfile import TempClass
 
 
-from .styletransfer import ContentLoss, gram_matrix, StyleLoss, Normalization
+from .styletransfer import (
+    ContentLoss,
+    gram_matrix,
+    StyleLoss,
+    Normalization,
+    get_style_model_and_losses,
+)
+
 from .load_images import image_loader, imshow
+
 from .stobject import StyleTransferer
