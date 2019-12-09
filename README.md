@@ -1,5 +1,7 @@
 README
 
+A python package for image style transfer based on the tutorial: 
+[https://pytorch.org/tutorials/advanced/neural_style_tutorial.html]
 
 Notes on my setup:
 
