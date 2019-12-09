@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# import torch.optim as optim
+import torch.optim as optim
 
 # import torchvision.transforms as transforms
 # import torchvision.models as models
@@ -12,9 +12,9 @@ import torch.nn.functional as F
 # from PIL import Image
 # import matplotlib.pyplot as plt
 
-# import copy
+import copy
 
-# from torchvision.utils import save_image
+from torchvision.utils import save_image
 
 
 class ContentLoss(nn.Module):
@@ -83,6 +83,7 @@ def get_style_model_and_losses(
     normalization_std,
     style_img,
     content_img,
+    device=None,
     content_layers=["conv_4"],
     style_layers=["conv_1", "conv_2", "conv_3", "conv_4", "conv_5"],
 ):
@@ -144,3 +145,84 @@ def get_style_model_and_losses(
     model = model[: (i + 1)]
 
     return model, style_losses, content_losses
+
+def get_input_optimizer(input_img):
+    # this line to show that input is a parameter that requires a gradient
+    optimizer = optim.LBFGS([input_img.requires_grad_()])
+    return optimizer
+
+def run_style_transfer(cnn, normalization_mean, normalization_std,
+                       content_img, style_img, input_img,
+                       num_steps=5, # num_steps=300,
+                       style_weight=10000, # style_weight=1000000, 
+                       content_weight=1,
+                       file_path_output=None,
+                       verbose=1):
+    """Run the style transfer."""
+    print('Building the style transfer model..')
+    model, style_losses, content_losses = get_style_model_and_losses(cnn,
+        normalization_mean, normalization_std, style_img, content_img)
+    optimizer = get_input_optimizer(input_img)
+
+    print('Optimizing..')
+    run = [0]
+    while run[0] <= num_steps:
+
+        def closure():
+            # correct the values of updated input image
+            input_img.data.clamp_(0, 1)
+
+            optimizer.zero_grad()
+            model(input_img)
+            style_score = 0
+            content_score = 0
+
+            for sl in style_losses:
+                style_score += sl.loss
+            for cl in content_losses:
+                content_score += cl.loss
+
+            style_score *= style_weight
+            content_score *= content_weight
+
+            loss = style_score + content_score
+            loss.backward()
+
+            run[0] += 1
+            # if run[0] % 50 == 0:
+            #     print("run {}:".format(run))
+            #     print('Style Loss : {:4f} Content Loss: {:4f}'.format(
+            #         style_score.item(), content_score.item()))
+            #     print()
+
+            if verbose > 0:
+	            print("run {}:".format(run))
+	            print('Style Loss : {:4f} Content Loss: {:4f}'.format(
+	                style_score.item(), content_score.item()))
+	            print(f'{run[0]} <= {num_steps} : {run[0] <= num_steps:}')
+	            print()
+
+            #
+            if file_path_output is None:
+            	# ?Warning that output of intermediate steps will not be saved?
+            	pass
+
+            else:
+            	# Check if file_path_output is a valid path
+            	# ...
+
+	            input_img_preview = input_img.clone()
+	            # file_path_output = './data/output/images/'
+	            file_name_output_run = f'run_{run[0]}.jpg'
+	            full_path_output_run = file_path_output + file_name_output_run
+	            save_image(input_img_preview, full_path_output_run)                
+	              
+
+            return style_score + content_score
+
+        optimizer.step(closure)
+
+    # a last correction...
+    input_img.data.clamp_(0, 1)
+
+    return input_img
